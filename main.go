@@ -1,14 +1,16 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	"github.com/perlin-network/life/exec"
-	"github.com/perlin-network/life/platform"
-	"github.com/perlin-network/life/wasm-validation"
 	"io/ioutil"
 	"strconv"
 	"time"
+
+	"github.com/perlin-network/life/exec"
+	"github.com/perlin-network/life/platform"
+	"github.com/perlin-network/life/wasm-validation"
 )
 
 // Resolver defines imports for WebAssembly modules ran in Life.
@@ -123,7 +125,7 @@ func main() {
 	// called by the module, run it first.
 	if vm.Module.Base.Start != nil {
 		startID := int(vm.Module.Base.Start.Index)
-		_, err := vm.Run(startID)
+		_, err := vm.Run(context.Background(), startID)
 		if err != nil {
 			vm.PrintStackTrace()
 			panic(err)
@@ -140,7 +142,7 @@ func main() {
 	}
 
 	// Run the WebAssembly module's entry function.
-	ret, err := vm.Run(entryID, args...)
+	ret, err := vm.Run(context.Background(), entryID, args...)
 	if err != nil {
 		vm.PrintStackTrace()
 		panic(err)

@@ -1,9 +1,11 @@
 package exec
 
 import (
+	"context"
 	"errors"
 
 	"fmt"
+
 	"github.com/perlin-network/life/compiler"
 	"github.com/perlin-network/life/utils"
 )
@@ -29,7 +31,7 @@ func (vm *VirtualMachine) RunWithGasLimit(entryID, limit int, params ...int64) (
 
 	vm.Ignite(entryID, params...)
 	for !vm.Exited {
-		vm.Execute()
+		vm.Execute(context.Background())
 		if vm.Delegate != nil {
 			vm.Delegate()
 			vm.Delegate = nil
@@ -49,7 +51,7 @@ func (vm *VirtualMachine) RunWithGasLimit(entryID, limit int, params ...int64) (
 // Run runs a WebAssembly modules function denoted by its ID with a specified set
 // of parameters.
 // Panics on logical errors.
-func (vm *VirtualMachine) Run(entryID int, params ...int64) (retVal int64, retErr error) {
+func (vm *VirtualMachine) Run(ctx context.Context, entryID int, params ...int64) (retVal int64, retErr error) {
 	vm.Ignite(entryID, params...) // call Ignite() to perform necessary checks even if we are using the AOT mode.
 
 	if vm.AOTService != nil {
@@ -80,7 +82,7 @@ func (vm *VirtualMachine) Run(entryID int, params ...int64) (retVal int64, retEr
 	}
 
 	for !vm.Exited {
-		vm.Execute()
+		vm.Execute(ctx)
 		if vm.Delegate != nil {
 			vm.Delegate()
 			vm.Delegate = nil

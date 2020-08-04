@@ -1,14 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/perlin-network/life/compiler"
-	"github.com/perlin-network/life/exec"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/perlin-network/life/compiler"
+	"github.com/perlin-network/life/exec"
 )
 
 type Resolver struct{}
@@ -134,7 +136,7 @@ func (c *Config) Run(cfgPath string) error {
 					args = append(args, int64(val))
 				}
 				fmt.Printf("Entry = %d, len(args) = %d\n", entryID, len(args))
-				ret, err := localVM.Run(entryID, args...)
+				ret, err := localVM.Run(context.Background(), entryID, args...)
 				if err != nil {
 					panic(err)
 				}

@@ -1,9 +1,11 @@
 package wasm_validation
 
 import (
+	"context"
 	"errors"
-	"github.com/perlin-network/life/exec"
 	"sync"
+
+	"github.com/perlin-network/life/exec"
 )
 
 type Resolver struct {
@@ -58,7 +60,7 @@ func (v *Validator) ValidateWasm(input []byte) error {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
-	_ret, err := v.vm.Run(v.funcGetCodeBuf, int64(len(input)))
+	_ret, err := v.vm.Run(context.Background(), v.funcGetCodeBuf, int64(len(input)))
 	if err != nil {
 		return err
 	}
@@ -67,7 +69,7 @@ func (v *Validator) ValidateWasm(input []byte) error {
 		return errors.New("input too large")
 	}
 	copy(v.vm.Memory[int(ret):], input)
-	_ret, err = v.vm.Run(v.funcCheck, int64(ret), int64(len(input)))
+	_ret, err = v.vm.Run(context.Background(), v.funcCheck, int64(ret), int64(len(input)))
 	ret = uint32(_ret)
 
 	if ret == 0 {
