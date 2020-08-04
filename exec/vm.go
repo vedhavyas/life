@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"math"
@@ -820,7 +821,7 @@ func (vm *VirtualMachine) AddAndCheckGas(delta uint64) bool {
 // This function may return at any point and is guaranteed to return
 // at least once every 10000 instructions. Caller is responsible for
 // detecting VM status in a loop.
-func (vm *VirtualMachine) Execute() {
+func (vm *VirtualMachine) Execute(ctx context.Context) {
 	if vm.Exited {
 		panic("attempting to execute an exited vm")
 	}
@@ -832,6 +833,11 @@ func (vm *VirtualMachine) Execute() {
 	if vm.InsideExecute {
 		panic("vm execution is not re-entrant")
 	}
+
+	if err := ctx.Err(); err != nil {
+		panic(err)
+	}
+
 	vm.InsideExecute = true
 	vm.GasLimitExceeded = false
 
@@ -851,7 +857,10 @@ func (vm *VirtualMachine) Execute() {
 		ins := opcodes.Opcode(frame.Code[frame.IP+4])
 		frame.IP += 5
 
-		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String())
+		// check if the context is done
+		if err := ctx.Err(); err != nil {
+			panic(err)
+		}
 
 		switch ins {
 		case opcodes.Nop:
